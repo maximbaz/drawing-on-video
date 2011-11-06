@@ -1,0 +1,103 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Maxim Baz | Drawing on video</title>
+    <link href="Content/Style.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+</head>
+<body>
+    <section id="video-block">
+        <video src="http://www.codeminders.com/interns/CodemindersOffice.m4v" width="480"
+            height="272" controls="controls" id="video" onplaying="UpdateCanvasOnPlaying();"
+            onpause="StopPlaying();" onseeking="UpdateCanvasOnSeeking();" onseeked="StopSeeking();">
+        </video>
+        <canvas width="480" height="240" id="canvas">
+        </canvas>
+    </section>
+
+    <fieldset>
+        <legend>Color</legend>
+        <label for="red">
+            <input id="red" type="radio" name="color" value="#FF0000" onchange="Canvas.Brush.SetColor(this.value);" />Red
+        </label>
+        <label for="green">
+            <input id="green" type="radio" name="color" value="#00FF00" onchange="Canvas.Brush.SetColor(this.value);" />Green
+        </label>
+        <label for="blue">
+            <input id="blue" type="radio" name="color" value="#0000FF" onchange="Canvas.Brush.SetColor(this.value);" checked="checked" />Blue
+        </label>
+    </fieldset>
+
+    <p>Width</p>
+    <input type="range" min="1" max="10" step="1" value="10" onchange="Canvas.Brush.SetWidth(this.value);">
+
+    <button onclick="DataBase.Create();">Create drawings</button>
+    <button onclick="DataBase.Remove();">Remove All Drawings</button>
+    
+    <div id="error"></div>
+    <div id="time"></div>
+    <div id="log"></div>
+
+    <script type="text/javascript">
+        $( function ()
+        {
+            if ( !window.webkitIndexedDB )
+                $( "#error" ).append( "<p>Unfortunately this browser doesn't support IndexedDB :(</p>" );
+            else if ( !$( "canvas" )[0].getContext )
+                $( "#error" ).append( "<p>Unfortunately this browser doesn't support Canvas tag :(</p>" );
+            else if ( !$( "video" )[0].canPlayType )
+                $( "#error" ).append( "<p>Unfortunately this browser doesn't support Video tag :(</p>" );
+            else
+                setTimeout( DataBase.Create, 3000 );
+        } );
+
+        var seeking, playing;
+
+        function UpdateCanvasOnSeeking()
+        {
+            if ( seeking )
+                return;
+
+            seeking = setInterval( function ()
+            {
+                var time = parseFloat($( "video" )[0].currentTime.toFixed( 2 ));
+
+                Canvas.Clear();
+                Canvas.Queue.Clear();
+                DataBase.Get( time );
+            }, 42 );
+        }
+
+        function UpdateCanvasOnPlaying()
+        {
+            if ( playing )
+                return;
+
+            playing = setInterval( function ()
+            {
+                var time = parseFloat($( "video" )[0].currentTime.toFixed( 2 ));
+
+                DataBase.Get( time + 1.0, time );
+            }, 42 );
+        }
+
+        function StopPlaying()
+        {
+            playing = clearInterval( playing );
+        }
+
+        function StopSeeking()
+        {
+            seeking = clearInterval( seeking );
+        }
+    </script>
+    <script type="text/javascript" src="js/Log.js"></script>
+    <script type="text/javascript" src="js/Structures.js"></script>
+    <script type="text/javascript" src="js/Brush.js"></script>
+    <script type="text/javascript" src="js/DataBase.js"></script>
+    <script type="text/javascript" src="js/MouseCanvas.js"></script>
+    <script type="text/javascript" src="js/Queue.js"></script>
+    <script type="text/javascript" src="js/Canvas.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+video, canvas
+{
+    position: absolute;
+}
+        
+#video-block
+{
+    margin: 0 200px;
+    width: 600px;
+    height: 350px;
+}
