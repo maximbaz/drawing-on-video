@@ -1,30 +1,35 @@
-var Canvas = ( function ()
+﻿var Canvas = ( function ()
 {
-    var Canvas = $( "canvas" )[0];
-    var Width = Canvas.width;
-    var Height = Canvas.height;
-
-    var context = Canvas.getContext( "2d" );
-    var Queue = this.Queue;
-    var mouseCanvas = this.MouseCanvas;
+    var canvas = $( "canvas" )[0];
+    var width = canvas.width;
+    var height = canvas.height;
+    var context = canvas.getContext( "2d" );
+    var mouseCanvas = this.MouseCanvas( width, height );
     var Brush = this.Brush( context );
 
-    Canvas.onmousedown = function ( e ) { mouseCanvas.Start( e ); }
-    Canvas.onmousemove = function ( e ) { mouseCanvas.Move( e ); }
-    Canvas.onmouseup = function ( e ) { mouseCanvas.Finish( e ); }
+    canvas.onmousedown = function ( e ) { mouseCanvas.Start( e ); }
+    canvas.onmousemove = function ( e ) { mouseCanvas.Move( e ); }
+    canvas.onmouseup = function ( e ) { mouseCanvas.Finish( e ); }
 
-    function Clear() { context.clearRect( 0, 0, Width, Height ); }
-
-    function StartDrawing()
+    function Clear()
     {
-        while ( true )
-        {
-            var draw = Queue.Enqueue();
-            if ( !draw )
-                return;
-            Brush.Draw( draw );
-        }
+        context.clearRect( 0, 0, width, height );
+        Queue.Clear();
     }
 
-    return { Clear: Clear, Brush: Brush, Queue: Queue, StartDrawing: StartDrawing, Width: Width, Height: Height }
+    function Draw()
+    {
+        var drawing;
+        while ( drawing = Queue.Dequeue() )
+            Brush.Draw( drawing );
+    }
+
+    function Load( videoTimeFrom, videoTimeTo )
+    {
+        var drawings = DrawingsRepository.Take( videoTimeFrom, videoTimeTo );
+        for ( var i = 0; i < drawings.length; i++ )
+            Queue.Enqueue( drawings[i] );
+    }
+
+    return { Clear: Clear, Brush: Brush, Draw: Draw, Load: Load }
 } )();

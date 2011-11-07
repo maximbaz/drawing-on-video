@@ -1,19 +1,8 @@
-var Log = ( function ()
+﻿var Log = ( function ()
 {
-    function Exception( e )
-    {
-        $( "#error" ).append( "<p>Exception: " + e.message + " (" + e.code + ")</p>" );
-    }
-
-    function Error( description )
-    {
-        $( "#error" ).append( "<p>Error: " + description + "</p>" );
-    }
-
-    function Show( description )
-    {
-        $( "#log" ).append( "<p>" + description + "</p>" );
-    }
+    function Exception( exception ) { console.error( exception ); }
+    function Error( description ) { console.error( description ); }
+    function Show( description ) { console.info( description ); }
 
     return { Exception: Exception, Error: Error, Show: Show }
 } )();

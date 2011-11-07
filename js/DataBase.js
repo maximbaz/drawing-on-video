@@ -1,17 +1,19 @@
-var DataBase = ( function ()
+﻿var DataBase = ( function ()
 {
     var db;
     var request = window.webkitIndexedDB.open( "lines-db" );
     request.onerror = Log.Error;
     request.addEventListener( "success", function ( e ) 
-                                         { 
-                                             db = request.result; 
-                                             Log.Show("Database opened / created!"); 
-                                         }, false );
+    { 
+        db = request.result; 
+        Log.Show("DataBase --> Database opened / created!"); 
+        DataBase.Create();
+        DataBase.Get();
+    }, false );
 
     function Create()
     {
-        if ( IsOpening() )
+        if ( !IsOpened() )
             return;
 
         var versionRequest = db.setVersion( "1.0" );
@@ -21,40 +23,30 @@ var DataBase = ( function ()
             if ( !db.objectStoreNames.contains( "lines" ) )
             {
                 objectStore = db.createObjectStore( "lines", { autoIncrement: true } ); 
-                Log.Show( "Object store created!" );
+                Log.Show( "DataBase.Create --> Object store created!" );
             }
-            else { Log.Show( "Object store opened!" ); }
+            else { Log.Show( "DataBase.Create --> Object store opened!" ); }
         }
     }
 
-    function Set( draw, videoTime )
+    function Set( drawing )
     {
-        if( !draw )      { Log.Error( "draw argument" );      return; }
-        if( !videoTime ) { Log.Error( "videoTime argument" ); return; }
+        if( !drawing ) { Log.Error( "DataBase.Set( --> drawing <-- )" ); return; }
 
-        if ( IsOpening() )
+        if ( !( IsOpened() && IsObjectStoreCreated() ) )
             return;
 
-        if ( !db.objectStoreNames.contains( "lines" ) )
-        {
-            Log.Error( "Object store doesn't exist." );
-            return;
-        }
-        var objectStore = db.transaction( [], webkitIDBTransaction.READ_WRITE ).objectStore( "lines" );
-
-        var addRequest = objectStore.put( Serialize(draw, videoTime) );
+        var objectStore = db.transaction( [ "lines" ], webkitIDBTransaction.READ_WRITE ).objectStore( "lines" );
+        var addRequest = objectStore.put( drawing );
         addRequest.onerror = Log.Error;
     }
 
-    function Get( videoTimeTo, videoTimeFrom )
+    function Get()
     {
-        if (!db.objectStoreNames.contains("lines")) 
-        {
-            Log.Error("Object store not yet created.");
+        if ( !IsObjectStoreCreated() )
             return;
-        }
- 
-        var transaction = db.transaction([], webkitIDBTransaction.READ_ONLY);
+
+        var transaction = db.transaction([ "lines" ], webkitIDBTransaction.READ_ONLY);
         var cursorRequest = transaction.objectStore("lines").openCursor();
 
         cursorRequest.onsuccess = function(e) 
@@ -62,20 +54,19 @@ var DataBase = ( function ()
             var cursor = cursorRequest.result;
             if(!cursor)
             {
-                Canvas.StartDrawing();
+                Log.Show("DataBase.Get --> Previous drawings loaded!");
                 return;
             }
-            var videoTime = parseFloat(cursor.value.videoTime);
-            if (videoTime <= videoTimeTo && videoTime >= (videoTimeFrom ? videoTimeFrom : 0))
-                Canvas.Queue.Dequeue(Deserialize(cursor.value)); 
+            
+            DrawingsRepository.Add( cursor.value ); 
             cursor.continue();
         }
         cursorRequest.onerror = Log.Error;
     }
 
-    function Remove() 
+    function ReCreate() 
     {
-        if ( IsOpening() )
+        if ( !IsOpened() )
             return;
  
         var request = db.setVersion("1.0");
@@ -86,54 +77,36 @@ var DataBase = ( function ()
             {
                 try 
                 {
-                    db.deleteObjectStore("lines"); 
-                    Canvas.Queue.Clear();
-                    Log.Show("Object store removed!");
+                    db.deleteObjectStore("lines");
+                    Log.Show("DataBase.ReCreate --> Object store removed!");
+                    Create();
                 } 
                 catch (err) { Log.Exception(err); }
             } 
             else 
-                Log.Error("Object store doesn't exist.");
+                Log.Error("DataBase.ReCreate --> Object store doesn't exist.");
         };
     }
 
-    function IsOpening()
+    function IsOpened()
     {
-        if ( !db )
+        if ( !db && request )
         {
-            if ( request )
-                request.addEventListener( 'success', db.removeObjectStore, false );
-            return true;
+            Log.Error("DataBase.IsOpened --> DataBase is not opened.");
+            return false;
         }
-        return false;
+        return true;
     }
 
-    function Serialize( draw, videoTime )
+    function IsObjectStoreCreated()
     {
-        var record = 
+        if ( !db.objectStoreNames.contains( "lines" ) )
         {
-            "videoTime": videoTime, 
-            "color": draw.color,
-            "width": draw.width,
-            "fromX": draw.line.from.x,
-            "fromY": draw.line.from.y,
-            "toX": draw.line.to.x,
-            "toY": draw.line.to.y
-        };
-
-        return record;
+            Log.Error( "DataBase.IsObjectStoreCreated --> Object store doesn't exist." );
+            return false;
+        }
+        return true;
     }
 
-    function Deserialize( value )
-    {
-        if( !value ) { Log.Error( "value argument" ); return; }
-
-        var from = Point( value.fromX, value.fromY );
-        var to = Point( value.toX, value.toY );
-        var line = Line(from, to);
-
-        return Draw( line, value.color, value.width);
-    }
-
-    return { Create: Create, Remove: Remove, Get: Get, Set: Set }
+    return { Create: Create, ReCreate: ReCreate, Get: Get, Set: Set }
 } )();

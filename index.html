@@ -2,99 +2,71 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>Maxim Baz | Drawing on video</title>
+    <title>Максим Базь | Графические аннотации на видео</title>
     <link href="Content/Style.css" rel="stylesheet" type="text/css" />
-    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+    <script type="text/javascript" src="js/jquery-1.7.min.js"></script>
 </head>
 <body>
     <section id="video-block">
-        <video src="http://www.codeminders.com/interns/CodemindersOffice.m4v" width="480"
-            height="272" controls="controls" id="video" onplaying="UpdateCanvasOnPlaying();"
-            onpause="StopPlaying();" onseeking="UpdateCanvasOnSeeking();" onseeked="StopSeeking();">
-        </video>
-        <canvas width="480" height="240" id="canvas">
-        </canvas>
+        <video src="http://www.codeminders.com/interns/CodemindersOffice.m4v" width="480" height="272" controls></video>
+        <canvas width="480" height="240" ></canvas>
+        <section id="drawing-controls">
+            <fieldset id="colors">
+                <legend>Цвет пера</legend>
+                <label for="red"> <input id="red" type="radio" name="color" value="#FF0000" />Красный </label>
+                <label for="green"> <input id="green" type="radio" name="color" value="#00FF00" />Зеленый </label>
+                <label for="blue"> <input id="blue" type="radio" name="color" value="#0000FF" checked />Синий </label>
+            </fieldset>
+            <div>Толщина пера: <input id="width" type="range" min="1" max="10" step="1" value="10" /></div>
+            <button id="remove-drawings">Очистить историю рисования</button>
+        </section>
     </section>
 
-    <fieldset>
-        <legend>Color</legend>
-        <label for="red">
-            <input id="red" type="radio" name="color" value="#FF0000" onchange="Canvas.Brush.SetColor(this.value);" />Red
-        </label>
-        <label for="green">
-            <input id="green" type="radio" name="color" value="#00FF00" onchange="Canvas.Brush.SetColor(this.value);" />Green
-        </label>
-        <label for="blue">
-            <input id="blue" type="radio" name="color" value="#0000FF" onchange="Canvas.Brush.SetColor(this.value);" checked="checked" />Blue
-        </label>
-    </fieldset>
+    <section id="description">
+        <div id="error"></div>
+        <figure>
+            <img src="Content/My-photo.png" alt="It's me!" />
+            <figcaption>
+                <p>Максим Базь</p>
+                <p><a href="mailto:Maxim.Baz@z0rch.com">Email</a></p>
+            </figcaption>
+        </figure>
+        <h1>Вакансия: Junior Web Developer</h1>
+        <h3>Задание: Графические аннотации на видео</h3>
+        <br />
+        <h4>Комментарии</h4>
+        <ul>
+            <li>Скрипт работает в любом браузере, поддерживающем HTML5, однако <b>сохранение изображений между сессиями</b> доступно только в Chrome последних версий &mdash; <i>потому что я использовал веб-хранилище <b>webkitIndexedDB</b>, которое отличается от <b>mozIndexedDB</b>.</i></li>
+            <li>Я использовал Test Driven Development.</li>
+        </ul>
+        <button class="show-hide-algorithm">Показать описание алгоритма</button>
+    </section>
+    <section id="algorithm">
+        <h4>Отображение видео и рисование поверх него</h4>
+        <p>Я просто поместил <b>&lt;canvas&gt;</b> поверх <b>&lt;video&gt;</b> и получил возможность рисовать "на лету" поверх видео-плеера.</p>
+        <h4>Хранение изображений</h4>
+        <p>Для длительного хранения я использовал <b>IndexedDB</b>, потому что она:</p>
+        <ul>
+            <li>Позволяет хранить <b>объекты</b> (&nbsp;сериализация и десериализация не нужны&nbsp;).</li>
+            <li>Не теряет данные даже при перезапуске браузера.</li>
+            <li>Позволяет работать асинхронно.</li>
+        </ul>
+        <p>Для кратковременного хранения я использовал собственную структуру в памяти <b>DrawingsRepository</b>, которая хранит объекты в сортированном порядке (&nbsp;для быстрого поиска и выборки данных&nbsp;).</p>
+        <h4>Обработка рисования</h4>
+        <ul>
+            <li>При загрузке страницы <b>все</b> изображения копируются из БД в репозиторий. </li>
+            <li>Во время проигрывания 24 раза в секунду из репозитория выбираются все изображения в промежутке времени <b>от текущего до следующего кадров</b> и рисуются на <i>canvas</i>. </li>
+            <li>Во время перемотки видео всё практически так же, только <b>перед каждым рисованием <i>canvas</i> очищается</b>, и промежуток времени выбирается <b>от первого до текущего кадров</b>.</li>
+            <li>Во время рисования изображение отображается на <i>canvas</i>, а также копируется в БД и репозиторий.</li>
+        </ul>
+        <button class="show-hide-algorithm">Показать описание алгоритма</button>
+    </section>
 
-    <p>Width</p>
-    <input type="range" min="1" max="10" step="1" value="10" onchange="Canvas.Brush.SetWidth(this.value);">
-
-    <button onclick="DataBase.Create();">Create drawings</button>
-    <button onclick="DataBase.Remove();">Remove All Drawings</button>
-    
-    <div id="error"></div>
-    <div id="time"></div>
-    <div id="log"></div>
-
-    <script type="text/javascript">
-        $( function ()
-        {
-            if ( !window.webkitIndexedDB )
-                $( "#error" ).append( "<p>Unfortunately this browser doesn't support IndexedDB :(</p>" );
-            else if ( !$( "canvas" )[0].getContext )
-                $( "#error" ).append( "<p>Unfortunately this browser doesn't support Canvas tag :(</p>" );
-            else if ( !$( "video" )[0].canPlayType )
-                $( "#error" ).append( "<p>Unfortunately this browser doesn't support Video tag :(</p>" );
-            else
-                setTimeout( DataBase.Create, 3000 );
-        } );
-
-        var seeking, playing;
-
-        function UpdateCanvasOnSeeking()
-        {
-            if ( seeking )
-                return;
-
-            seeking = setInterval( function ()
-            {
-                var time = parseFloat($( "video" )[0].currentTime.toFixed( 2 ));
-
-                Canvas.Clear();
-                Canvas.Queue.Clear();
-                DataBase.Get( time );
-            }, 42 );
-        }
-
-        function UpdateCanvasOnPlaying()
-        {
-            if ( playing )
-                return;
-
-            playing = setInterval( function ()
-            {
-                var time = parseFloat($( "video" )[0].currentTime.toFixed( 2 ));
-
-                DataBase.Get( time + 1.0, time );
-            }, 42 );
-        }
-
-        function StopPlaying()
-        {
-            playing = clearInterval( playing );
-        }
-
-        function StopSeeking()
-        {
-            seeking = clearInterval( seeking );
-        }
-    </script>
+    <script type="text/javascript" src="js/OnLoad.js"></script>
     <script type="text/javascript" src="js/Log.js"></script>
     <script type="text/javascript" src="js/Structures.js"></script>
     <script type="text/javascript" src="js/Brush.js"></script>
+    <script type="text/javascript" src="js/DrawingsRepository.js"></script>
     <script type="text/javascript" src="js/DataBase.js"></script>
     <script type="text/javascript" src="js/MouseCanvas.js"></script>
     <script type="text/javascript" src="js/Queue.js"></script>

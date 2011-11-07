@@ -1,15 +1,13 @@
-var MouseCanvas = ( function ()
+﻿function MouseCanvas( width, height )
 {
     var from, to;
     var isDrawing = false;
-    var offset_x = parseInt( $( "#video-block" ).css( "margin-left" ).replace( 'px', '' ) );
-    var offset_y = parseInt( $( "#video-block" ).css( "margin-top" ).replace( 'px', '' ) );
 
     function Start( e )
     {
-        if ( !e ) { Log.Error( "mouse event args" ); return; }
+        if ( !e ) { Log.Error( "MouseCanvas.Start( --> e <-- )" ); return; }
 
-        from = Point( e.clientX - offset_x, e.clientY - offset_y );
+        from = Point( e.offsetX, e.offsetY );
         isDrawing = true;
     }
 
@@ -18,16 +16,17 @@ var MouseCanvas = ( function ()
         if ( !isDrawing )
             return;
 
-        if ( !e ) { Log.Error( "mouse event args" ); return; }
-
-        to = Point( e.clientX - offset_x, e.clientY - offset_y );
-
-        var draw = Draw( Line( from, to ), Canvas.Brush.Color, Canvas.Brush.Width );
-        Canvas.Queue.Dequeue( draw );
-        Canvas.StartDrawing();
-        DataBase.Set( draw, $( "video" )[0].currentTime.toFixed( 2 ) );
-
+        if ( !e ) { Log.Error( "MouseCanvas.Finish( --> e <-- )" ); return; }
+        
+        to = Point( e.offsetX, e.offsetY );
+        var drawing = Drawing( Line( from, to ), Canvas.Brush.Color, Canvas.Brush.Width, $( "video" )[0].currentTime.toFixed( 2 ) );
         isDrawing = false;
+        
+        Queue.Enqueue( drawing );
+        Canvas.Draw();
+        DrawingsRepository.Add( drawing );
+        DataBase.Set( drawing );
+
     }
 
     function Move( e )
@@ -35,30 +34,31 @@ var MouseCanvas = ( function ()
         if ( !isDrawing )
             return;
 
-        if ( !e ) { Log.Error( "mouse event args" ); return; }
+        if ( !e ) { Log.Error( "MouseCanvas.Move( --> e <-- )" ); return; }
 
-        to = Point( e.clientX - offset_x, e.clientY - offset_y );
-
-        var draw = Draw( Line( from, to ), Canvas.Brush.Color, Canvas.Brush.Width );
-        Canvas.Queue.Dequeue( draw );
-        Canvas.StartDrawing();
-        DataBase.Set( draw, $( "video" )[0].currentTime.toFixed( 2 ) );
+        to = Point( e.offsetX, e.offsetY );
+        var drawing = Drawing( Line( from, to ), Canvas.Brush.Color, Canvas.Brush.Width, $( "video" )[0].currentTime.toFixed( 2 ) );
 
         if ( InPaintArea( to ) )
             from = to;
         else
             isDrawing = false;
+            
+        Queue.Enqueue( drawing );
+        Canvas.Draw();
+        DrawingsRepository.Add( drawing );
+        DataBase.Set( drawing );
     }
 
     function InPaintArea( point )
     {
-        if ( !point ) { Log.Error( "point argument" ); return; }
+        if ( !point ) { Log.Error( "MouseCanvas.InPaintArea( --> point <-- )" ); return; }
 
-        var borderLeftTop = 10;
+        var bordersLeftTop = 10;
 
-        return point.x > borderLeftTop && point.x < Canvas.Width &&
-               point.y > borderLeftTop && point.y < Canvas.Height;
+        return point.X > bordersLeftTop && point.X < width &&
+               point.Y > bordersLeftTop && point.Y < height;
     }
 
     return { Start: Start, Finish: Finish, Move: Move }
-} )();
+}

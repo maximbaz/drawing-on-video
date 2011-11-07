@@ -1,29 +1,15 @@
-var Queue = ( function ()
+﻿var Queue = ( function ()
 {
     var data = [];
 
-    function Dequeue( line )
+    function Enqueue( element )
     {
-        if ( !line ) { Log.Error( "line argument" ); return; }
-
-        if ( !Contains( line ) )
-            data.push( line );
+        if ( !element ) { Log.Error( "Queue.Enqueue( --> element <-- )" ); return; }
+        data.push( element );
     }
 
-    function Enqueue() 
-    {
-        return data.shift();
-    }
-
+    function Dequeue() { return data.shift(); }
     function Clear() { data = []; }
 
-    function Contains( line )
-    {
-        for ( var i = 0; i < data.length; i++ )
-            if ( data[i].Equals( line ) )
-                return true;
-        return false;
-    }
-
-    return { Dequeue: Dequeue, Enqueue: Enqueue, Clear: Clear }
+    return { Enqueue: Enqueue, Dequeue: Dequeue, Clear: Clear }
 } )();

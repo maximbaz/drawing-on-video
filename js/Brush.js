@@ -1,22 +1,19 @@
-function Brush( context )
+﻿function Brush( context )
 {
-    if ( !context ) { Log.Error( "context argument" ); return; }
+    if ( !context ) { Log.Error( "Brush( --> context <-- )" ); return; }
 
     this.Color = "#0000FF";
-    this.Width = "10";
-    var context = context;
+    this.Width = 10;
 
-    function Draw( draw )
+    function Draw( drawing )
     {
-        if ( !draw ) { Log.Error( "draw argument" ); return; }
-
+        if ( !drawing ) { Log.Error( "Brush.Draw( --> drawing <-- )" ); return; }
+        
         context.beginPath();
-
-        context.strokeStyle = draw.color;
-        context.lineWidth = draw.width;
-        context.moveTo( draw.line.from.x, draw.line.from.y );
-        context.lineTo( draw.line.to.x, draw.line.to.y );
-
+        context.strokeStyle = drawing.Color;
+        context.lineWidth = drawing.Width;
+        context.moveTo( drawing.Line.From.X, drawing.Line.From.Y );
+        context.lineTo( drawing.Line.To.X, drawing.Line.To.Y );
         context.stroke();
     }
 
