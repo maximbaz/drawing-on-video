@@ -2,23 +2,34 @@
 {
     if ( !context ) { Log.Error( "Brush( --> context <-- )" ); return; }
 
+    this.Context = context;
     this.Color = "#0000FF";
     this.Width = 10;
-
-    function Draw( drawing )
-    {
-        if ( !drawing ) { Log.Error( "Brush.Draw( --> drawing <-- )" ); return; }
-        
-        context.beginPath();
-        context.strokeStyle = drawing.Color;
-        context.lineWidth = drawing.Width;
-        context.moveTo( drawing.Line.From.X, drawing.Line.From.Y );
-        context.lineTo( drawing.Line.To.X, drawing.Line.To.Y );
-        context.stroke();
-    }
-
-    function SetColor( color ) { this.Color = color; }
-    function SetWidth( width ) { this.Width = width; }
-
-    return { Color: Color, Width: Width, Draw: Draw, SetColor: SetColor, SetWidth: SetWidth }
 }
+
+Brush.prototype.Draw = function( drawing )
+{
+    if ( !drawing ) { Log.Error( "Brush.Draw( --> drawing <-- )" ); return; }
+        
+    this.Context.beginPath();
+    this.Context.strokeStyle = drawing.Color;
+    this.Context.lineWidth = drawing.Width;
+    this.Context.moveTo( drawing.Line.From.X, drawing.Line.From.Y );
+    this.Context.lineTo( drawing.Line.To.X, drawing.Line.To.Y );
+    this.Context.stroke();
+}
+
+Brush.prototype.Clear = function( drawing )
+{
+    if ( !drawing ) { Log.Error( "Brush.Clear( --> drawing <-- )" ); return; }
+
+    var fromX = Math.min( drawing.Line.From.X, drawing.Line.To.X ) - Math.ceil(drawing.Width / 2);
+    var fromY = Math.min( drawing.Line.From.Y, drawing.Line.To.Y ) - Math.ceil( drawing.Width / 2 );
+    var cX = Math.abs( drawing.Line.From.X - drawing.Line.To.X ) + drawing.Width;
+    var cY = Math.abs( drawing.Line.From.Y - drawing.Line.To.Y ) + drawing.Width;
+
+    this.Context.clearRect( fromX, fromY, cX, cY );
+}
+
+Brush.prototype.SetColor = function ( color ) { this.Color = color; }
+Brush.prototype.SetWidth = function ( width ) { this.Width = width; }

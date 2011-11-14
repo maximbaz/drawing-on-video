@@ -1,35 +1,36 @@
-﻿var Canvas = ( function ()
+﻿function Canvas (canvas, indexedDB)
 {
-    var canvas = $( "canvas" )[0];
-    var width = canvas.width;
-    var height = canvas.height;
-    var context = canvas.getContext( "2d" );
-    var mouseCanvas = this.MouseCanvas( width, height );
-    var Brush = this.Brush( context );
+    if ( !canvas ) { Log.Error( "Canvas( --> canvas <-- )" ); return; }
 
-    canvas.onmousedown = function ( e ) { mouseCanvas.Start( e ); }
-    canvas.onmousemove = function ( e ) { mouseCanvas.Move( e ); }
-    canvas.onmouseup = function ( e ) { mouseCanvas.Finish( e ); }
+    this.Width = canvas.width;
+    this.Height = canvas.height;
+    this.Context = canvas.getContext( "2d" );
+    this.Brush = new Brush( this.Context );
+    this.DrawingsRepository = new DrawingsRepository();
+    this.CanvasRepository = new CanvasRepository( this.Brush, this.DrawingsRepository );
+    this.DataBase = new DataBase( indexedDB, this.DrawingsRepository );
 
-    function Clear()
-    {
-        context.clearRect( 0, 0, width, height );
-        Queue.Clear();
-    }
+    var mouseEvents = new MouseEvents( this.Width, this.Height, this.Brush, this.DrawingsRepository, this.CanvasRepository, this.DataBase );
 
-    function Draw()
-    {
-        var drawing;
-        while ( drawing = Queue.Dequeue() )
-            Brush.Draw( drawing );
-    }
+    canvas.onmousedown = function ( e ) { mouseEvents.Start( e ); }
+    canvas.onmousemove = function ( e ) { mouseEvents.Move( e ); }
+    canvas.onmouseup = function ( e ) { mouseEvents.Finish( e ); }
+}
 
-    function Load( videoTimeFrom, videoTimeTo )
-    {
-        var drawings = DrawingsRepository.Take( videoTimeFrom, videoTimeTo );
-        for ( var i = 0; i < drawings.length; i++ )
-            Queue.Enqueue( drawings[i] );
-    }
+Canvas.prototype.Update = function( time )
+{
+    this.CanvasRepository.Remove( time );
+    this.CanvasRepository.Add( time );
+}
 
-    return { Clear: Clear, Brush: Brush, Draw: Draw, Load: Load }
-} )();
+Canvas.prototype.ClearHistory = function()
+{
+    this.DrawingsRepository.Clear();
+    this.DataBase.ReCreate();
+}
+
+Canvas.prototype.Clear = function()
+{
+    this.Context.clearRect( 0, 0, this.Width, this.Height );
+    this.CanvasRepository.Clear();
+}
