@@ -4,7 +4,7 @@
     {
         var brush = new Brush( new MockCanvasContext() );
         assertEquals( "#0000FF", brush.Color );
-        assertEquals( 10, brush.Width );
+        assertEquals( 13, brush.Width );
     },
 
     test_Can_Get_Set_Color_Width_Of_Brush: function ()

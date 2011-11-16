@@ -2,13 +2,13 @@
 {
     if ( !drawing ) { Log.Error( "SplitDrawings( --> drawing <-- )" ); return; }
 
+    if ( drawing.Line.To.X - drawing.Line.From.X < 0 )
+        SwapLines( drawing );
+
     if ( drawing.Line.From.X == drawing.Line.To.X || drawing.Line.From.Y == drawing.Line.To.Y )
         return [drawing];
 
     var result = [];
-
-    if ( drawing.Line.To.X - drawing.Line.From.X < 0 )
-        SwapLines( drawing );
 
     var bottomToTop = drawing.Line.To.Y - drawing.Line.From.Y < 0;
     var TryY = bottomToTop ? TryTop : TryBottom;

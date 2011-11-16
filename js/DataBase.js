@@ -10,11 +10,10 @@
     { 
         db = request.result; 
         Log.Show("DataBase --> Database opened / created!"); 
-        Create();
-        Get();
+        Create(true);
     }, false );
 
-    function Create()
+    function Create(loadPrevious)
     {
         if ( !IsOpened() )
             return;
@@ -28,7 +27,13 @@
                 objectStore = db.createObjectStore( "lines", { autoIncrement: true } ); 
                 Log.Show( "DataBase.Create --> Object store created!" );
             }
-            else { Log.Show( "DataBase.Create --> Object store opened!" ); }
+            else 
+            { 
+                Log.Show( "DataBase.Create --> Object store opened!" ); 
+            }
+
+            if(loadPrevious)
+                Get();
         }, false );
     }
 
@@ -61,7 +66,7 @@
                 return;
             }
             
-            drawingsRepository.Add( cursor.value ); 
+            drawingsRepository.Add( DrawingFromObject(cursor.value) ); 
             cursor.continue();
         }, false );
         cursorRequest.onerror = Log.Error;
@@ -89,6 +94,16 @@
             else 
                 Log.Error("DataBase.ReCreate --> Object store doesn't exist.");
         }, false );
+    }
+
+    function DrawingFromObject( value )
+    {
+        value.__proto__ = Drawing.prototype;
+        value.Line.__proto__ = Line.prototype;
+        value.Line.From.__proto__ = Point.prototype;
+        value.Line.To.__proto__ = Point.prototype;
+
+        return value;
     }
 
     function IsOpened()

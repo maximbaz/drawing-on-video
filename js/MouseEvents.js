@@ -56,10 +56,10 @@
     {
         if ( !point ) { Log.Error( "MouseEvents.InPaintArea( --> point <-- )" ); return; }
 
-        var bordersLeftTop = 10;
+        var dx = 2;
 
-        return point.X > bordersLeftTop && point.X < width &&
-           point.Y > bordersLeftTop && point.Y < height;
+        return point.X > dx && point.X < width - dx &&
+               point.Y > dx && point.Y < height - dx;
     }
 
     function DataBaseSafeAdd( drawing )

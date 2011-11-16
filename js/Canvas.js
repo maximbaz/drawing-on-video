@@ -7,8 +7,8 @@
     this.Context = canvas.getContext( "2d" );
     this.Brush = new Brush( this.Context );
     this.DrawingsRepository = new DrawingsRepository();
-    this.CanvasRepository = new CanvasRepository( this.Brush, this.DrawingsRepository );
     this.DataBase = new DataBase( indexedDB, this.DrawingsRepository );
+    this.CanvasRepository = new CanvasRepository( this.Brush, this.DrawingsRepository );
 
     var mouseEvents = new MouseEvents( this.Width, this.Height, this.Brush, this.DrawingsRepository, this.CanvasRepository, this.DataBase );
 

@@ -14,10 +14,10 @@ function MockDrawingsRepository()
 {
     var repository = new DrawingsRepository();
 
-    repository.Add( new Drawing( null, null, null, 6, 9 ) );
-    repository.Add( new Drawing( null, null, null, 1, 7 ) );
-    repository.Add( new Drawing( null, null, null, 3, 5 ) );
-    
+    repository.Add( new Drawing( new Line( new Point( 0, 0 ), new Point( 0, 0 ) ), 0, 0, 6, 9 ) );
+    repository.Add( new Drawing( new Line( new Point( 0, 0 ), new Point( 0, 0 ) ), 0, 0, 1, 7 ) );
+    repository.Add( new Drawing( new Line( new Point( 0, 0 ), new Point( 0, 0 ) ), 0, 0, 3, 5 ) );
+
     return repository;
 }
 

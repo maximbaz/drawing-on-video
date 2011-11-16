@@ -3,21 +3,21 @@
     if ( !brush ) { Log.Error( "CanvasRepository( --> brush <-- )" ); return; }
     if ( !drawingsRepository ) { Log.Error( "CanvasRepository( --> drawingsRepository <-- )" ); return; }
 
-    newestVideoTimeStart = 0;
-    this.Drawings = [];
+    var newestDrawing;
+    var table = new HashTable();
     var that = this;
 
     // privileged
 
     this.Add = function ( time )
     {
-        var newDrawings = drawingsRepository.Get( newestVideoTimeStart, time );
+        var newDrawings = drawingsRepository.Get( newestDrawing, time );
         if ( newDrawings.length > 0 )
-            newestVideoTimeStart = newDrawings[newDrawings.length - 1].VideoTimeStart; // +0.01;
+            newestDrawing = newDrawings[newDrawings.length - 1];
 
         for ( var i = 0; i < newDrawings.length; i++ )
         {
-            this.Drawings.splice( Find( newDrawings[i].VideoTimeFinish, function ( a, b ) { return a > b; } ), 0, newDrawings[i] );
+            table.Add( newDrawings[i] );
             brush.Draw( newDrawings[i] );
         }
     }
@@ -28,65 +28,52 @@
         RemoveWhereVideoTimeStartDoesntBegin( time );
     }
 
-    // private
 
-    function Find( videoTimeFinish, compare )
+    this.Clear = function () { table = []; }
+
+    /* For testing purposes only */
+    this.GetAllDrawings = function ()
     {
-        for ( var i = 0; i < that.Drawings.length; i++ )
-            if ( compare( that.Drawings[i].VideoTimeFinish, videoTimeFinish ) )
-                return i;
-        return that.Drawings.length;
+        var result = [];
+        for ( var i in table.Data )
+            result.push( { "VideoTimeFinish": table.Data[i].VideoTimeFinish } );
+
+        return result;
     }
+
+    // private
 
     function RemoveWhereVideoTimeFinishPassed( time )
     {
-        var removeDrawings = that.Drawings.splice( Find( time, function ( a, b ) { return a < b; } ),
-                                                   Find( time, function ( a, b ) { return a >= b; } ) );
-        if ( removeDrawings.length > 0 )
-        {
-            for ( var i = 0; i < removeDrawings.length; i++ )
-                brush.Clear( removeDrawings[i] );
-        }
+        for ( var i in table.Data )
+            if ( table.Data[i].VideoTimeFinish < time )
+            {
+                brush.Clear( table.Data[i] );
+                table.Remove( table.Data[i] );
+            }
     }
 
     function RemoveWhereVideoTimeStartDoesntBegin( time )
     {
-        var needToUpdateNewestVideoTimeStart = false;
-        for ( var i = 0; i < that.Drawings.length; i++ )
-        {
-            if ( that.Drawings[i].VideoTimeStart > time )
+        var needToUpdateNewestDrawing = false;
+        for ( var i in table.Data )
+            if ( table.Data[i].VideoTimeStart > time )
             {
-                if ( that.Drawings[i].VideoTimeStart == newestVideoTimeStart )
-                    needToUpdateNewestVideoTimeStart = true;
-                brush.Clear( that.Drawings[i] );
-                that.Drawings.splice( i--, 1 );
+                if ( table.Data[i].Equals(newestDrawing) )
+                    needToUpdateNewestDrawing = true;
+                table.Remove( table.Data[i] );
+                brush.Clear( table.Data[i] );
             }
-        }
 
-        if ( needToUpdateNewestVideoTimeStart )
-            UpdateNewestVideoTimeStart();
+            if ( needToUpdateNewestDrawing )
+            UpdateNewestDrawing();
     }
 
-    function UpdateNewestVideoTimeStart()
+    function UpdateNewestDrawing()
     {
-        newestVideoTimeStart = 0;
-        for ( var i = 0; i < that.Drawings.length; i++ )
-            if ( that.Drawings[i].VideoTimeStart > newestVideoTimeStart )
-                newestVideoTimeStart = that.Drawings[i].VideoTimeStart;
-        // newestVideoTimeStart += 0.01;
+        newestDrawing = null;
+        for ( var i in table.Data )
+            if ( !newestDrawing || table.Data[i].VideoTimeStart > newestDrawing.VideoTimeStart )
+                newestDrawing = table.Data[i];
     }
-}
-
-// public
-
-CanvasRepository.prototype.Clear = function () { this.Drawings = []; }
-
-/* For testing purposes only */
-CanvasRepository.prototype.GetAllDrawings = function ()
-{
-    var result = [];
-    for ( var i = 0; i < this.Drawings.length; i++ )
-        result.push( { "VideoTimeFinish": this.Drawings[i].VideoTimeFinish } );
-
-    return result;
 }
