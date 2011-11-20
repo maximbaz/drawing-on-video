@@ -2,15 +2,15 @@
 {
     if ( !drawing ) { Log.Error( "SplitDrawings( --> drawing <-- )" ); return; }
 
-    if ( drawing.Line.To.X - drawing.Line.From.X < 0 )
-        SwapLines( drawing );
+    if ( drawing.Line.To.X < drawing.Line.From.X )
+        SwapPoints( drawing.Line );
 
     if ( drawing.Line.From.X == drawing.Line.To.X || drawing.Line.From.Y == drawing.Line.To.Y )
-        return [drawing];
+        return [CreateDrawing( drawing.Line.From, drawing.Line.To )];
 
     var result = [];
 
-    var bottomToTop = drawing.Line.To.Y - drawing.Line.From.Y < 0;
+    var bottomToTop = drawing.Line.To.Y < drawing.Line.From.Y;
     var TryY = bottomToTop ? TryTop : TryBottom;
 
     var line = new Line( drawing.Line.From, drawing.Line.From );
@@ -19,7 +19,7 @@
     var inSegment = true;
     while ( true )
     {
-        if ( TryX( line, point = new Point( line.To.X + offset, line.To.Y ) ) ||
+        if ( TryX( line, point = new Point( line.To.X, line.To.Y ) ) ||
              TryY( line, point = new Point( line.To.X, line.To.Y ), offset ) )
         {
             offset = 1;
@@ -49,11 +49,12 @@
 
     function TryX( line, point )
     {
+        point.X += offset;
         while ( PointBelongsToSegment( point, drawing.Line ) )
             ++point.X;
         if ( --point.X == line.To.X)
             return false;
-        result.push( new Drawing( new Line( line.From, point ), drawing.Color, drawing.Width, drawing.VideoTimeStart, drawing.VideoTimeFinish ) );
+        result.push( CreateDrawing( line.From, point ) );
         line.From = line.To = point;
         return true;
     }
@@ -65,7 +66,7 @@
             ++point.Y;
         if ( --point.Y == line.To.Y )
             return false;
-        result.push( new Drawing( new Line( line.From, point ), drawing.Color, drawing.Width, drawing.VideoTimeStart, drawing.VideoTimeFinish ) );
+        result.push( CreateDrawing( line.From, point ) );
         line.From = line.To = point;
         return true;
     }
@@ -77,9 +78,25 @@
             --point.Y;
         if ( ++point.Y == line.To.Y )
             return false;
-        result.push( new Drawing( new Line( line.From, point ), drawing.Color, drawing.Width, drawing.VideoTimeStart, drawing.VideoTimeFinish ) );
+        result.push( CreateDrawing( line.From, point ) );
         line.From = line.To = point;
         return true;
+    }
+
+    function CreateDrawing( from, to )
+    {
+        var beautyOffset = 2;
+        var vertical = from.X == to.X;
+
+        var startFrom = ( to.Y < from.Y ? to : from );
+        var startTo = ( to.Y < from.Y ? from : to );
+
+        var beautyFrom = new Point( startFrom.X - ( vertical ? 0 : beautyOffset ), startFrom.Y - ( vertical ? beautyOffset : 0 ) );
+        var beautyTo = new Point( startTo.X + ( vertical ? 0 : beautyOffset ), startTo.Y + ( vertical ? beautyOffset : 0 ) );
+
+        var line = new Line( beautyFrom, beautyTo );
+        
+        return new Drawing( line, drawing.Color, drawing.Width, drawing.VideoTimeStart, drawing.VideoTimeFinish );
     }
 
     function PointBelongsToSegment( point, line )
@@ -111,10 +128,10 @@
         return ( line.To.X - line.From.X ) * ( line.To.X - line.From.X ) + ( line.To.Y - line.From.Y ) * ( line.To.Y - line.From.Y );
     }
 
-    function SwapLines( drawing )
+    function SwapPoints( line )
     {
-        var temp = drawing.Line.From;
-        drawing.Line.From = drawing.Line.To;
-        drawing.Line.To = temp;
+        var temp = line.From;
+        line.From = line.To;
+        line.To = temp;
     }
 }

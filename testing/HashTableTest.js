@@ -12,7 +12,6 @@
         this.hashtable.Add( this.drawing );
 
         assertEquals( 1, this.hashtable.length );
-        assertEquals( true, this.hashtable.IsPresent( this.drawing ) );
     },
 
     test_Can_Remove_Drawing: function ()

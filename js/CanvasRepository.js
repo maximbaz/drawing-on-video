@@ -4,6 +4,7 @@
     if ( !drawingsRepository ) { Log.Error( "CanvasRepository( --> drawingsRepository <-- )" ); return; }
 
     var newestDrawing;
+    var lastRemoved = 0;
     var table = new HashTable();
     var that = this;
 
@@ -11,7 +12,9 @@
 
     this.Add = function ( time )
     {
-        var newDrawings = drawingsRepository.Get( newestDrawing, time );
+        var newDrawings = ( !newestDrawing || time < lastRemoved )
+                            ? drawingsRepository.GetVisibleBefore( time )
+                            : drawingsRepository.GetInterval( newestDrawing, time );
         if ( newDrawings.length > 0 )
             newestDrawing = newDrawings[newDrawings.length - 1];
 
@@ -29,7 +32,7 @@
     }
 
 
-    this.Clear = function () { table = []; }
+    this.Clear = function ( time ) { table = new HashTable(); lastRemoved = time; }
 
     /* For testing purposes only */
     this.GetAllDrawings = function ()
@@ -46,26 +49,33 @@
     function RemoveWhereVideoTimeFinishPassed( time )
     {
         for ( var i in table.Data )
+        {
             if ( table.Data[i].VideoTimeFinish < time )
             {
-                brush.Clear( table.Data[i] );
-                table.Remove( table.Data[i] );
+                var removing = table.Data[i];
+                lastRemoved = removing.VideoTimeFinish;
+                brush.Clear( removing );
+                table.Remove( removing );
+                // InvalidatePreviouslyHiddenLines( removing );
             }
+        }
     }
 
     function RemoveWhereVideoTimeStartDoesntBegin( time )
     {
         var needToUpdateNewestDrawing = false;
         for ( var i in table.Data )
+        {
             if ( table.Data[i].VideoTimeStart > time )
             {
-                if ( table.Data[i].Equals(newestDrawing) )
+                if ( table.Data[i].Equals( newestDrawing ) )
                     needToUpdateNewestDrawing = true;
-                table.Remove( table.Data[i] );
                 brush.Clear( table.Data[i] );
+                table.Remove( table.Data[i] );
             }
+        }
 
-            if ( needToUpdateNewestDrawing )
+        if ( needToUpdateNewestDrawing )
             UpdateNewestDrawing();
     }
 
@@ -73,7 +83,23 @@
     {
         newestDrawing = null;
         for ( var i in table.Data )
+        {
             if ( !newestDrawing || table.Data[i].VideoTimeStart > newestDrawing.VideoTimeStart )
                 newestDrawing = table.Data[i];
+        }
+    }
+
+    function InvalidatePreviouslyHiddenLines( drawing )
+    {
+        for ( var i in table.Data )
+        {
+            if ( ( table.Data[i].Line.From.X - Math.ceil( table.Data[i].Width / 2 ) <= drawing.Line.From.X - Math.ceil( drawing.Width / 2 ) <= table.Data[i].Line.To.X + Math.ceil( table.Data[i].Width / 2 ) || drawing.Line.From.X - Math.ceil( drawing.Width / 2 ) <= table.Data[i].Line.From.X - Math.ceil( table.Data[i].Width / 2 ) <= drawing.Line.To.X + Math.ceil( drawing.Width / 2 ) ) &&
+                 ( table.Data[i].Line.From.Y - Math.ceil( table.Data[i].Width / 2 ) <= drawing.Line.From.Y - Math.ceil( drawing.Width / 2 ) <= table.Data[i].Line.To.Y + Math.ceil( table.Data[i].Width / 2 ) || drawing.Line.From.Y - Math.ceil( drawing.Width / 2 ) <= table.Data[i].Line.From.Y - Math.ceil( table.Data[i].Width / 2 ) <= drawing.Line.To.Y + Math.ceil( drawing.Width / 2 ) ) )
+            {
+                console.log( ( table.Data[i].Line.From.X - Math.ceil( table.Data[i].Width / 2 ) ) + " " + ( drawing.Line.From.X - Math.ceil( drawing.Width / 2 ) ) + " " + ( table.Data[i].Line.To.X + Math.ceil( table.Data[i].Width / 2 ) ) + " " +( drawing.Line.From.X - Math.ceil( drawing.Width / 2 )) + " " +( table.Data[i].Line.From.X - Math.ceil( table.Data[i].Width / 2 )) + " " +( drawing.Line.To.X + Math.ceil( drawing.Width / 2 ))  + " " +
+                             ( table.Data[i].Line.From.Y - Math.ceil( table.Data[i].Width / 2 ) ) + " " + ( drawing.Line.From.Y - Math.ceil( drawing.Width / 2 ) ) + " " + ( table.Data[i].Line.To.Y + Math.ceil( table.Data[i].Width / 2 ) ) + " " +( drawing.Line.From.Y - Math.ceil( drawing.Width / 2 )) + " " +( table.Data[i].Line.From.Y - Math.ceil( table.Data[i].Width / 2 )) + " " +( drawing.Line.To.Y + Math.ceil( drawing.Width / 2 ) ));
+                brush.Draw( table.Data[i] );
+            }
+        }
     }
 }

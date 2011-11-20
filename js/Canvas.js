@@ -29,8 +29,8 @@ Canvas.prototype.ClearHistory = function()
     this.DataBase.ReCreate();
 }
 
-Canvas.prototype.Clear = function()
+Canvas.prototype.Clear = function( time )
 {
     this.Context.clearRect( 0, 0, this.Width, this.Height );
-    this.CanvasRepository.Clear();
+    this.CanvasRepository.Clear( time );
 }

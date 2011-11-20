@@ -17,8 +17,10 @@
                 <label for="green"> <input id="green" type="radio" name="color" value="#00FF00" />Зеленый </label>
                 <label for="blue"> <input id="blue" type="radio" name="color" value="#0000FF" checked />Синий </label>
             </fieldset>
-            <div>Толщина пера: <input id="width" type="range" min="1" max="10" step="1" value="10" /></div>
-            <button id="remove-drawings">Очистить историю рисования</button>
+            <div><span class="description">Толщина пера: </span><input id="width" type="range" min="3" max="13" step="2" value="13" /><span id="current-width" class="counter">6 ед.</span></div>
+            <div><span class="description">Отображать на экране: </span><input id="duration" type="range" min="1" max="5" step="1" value="1" /><span id="current-duration" class="counter">1 сек.</span></div>
+            <button id="clear-canvas">Очистить экран</button>
+            <button id="clear-history">Очистить историю рисования</button>
         </section>
     </section>
 
@@ -36,30 +38,18 @@
         <br />
         <h4>Комментарии</h4>
         <ul>
-            <li>Скрипт работает в любом браузере, поддерживающем HTML5, однако <b>сохранение изображений между сессиями</b> доступно только в Chrome последних версий &mdash; <i>потому что я использовал веб-хранилище <b>webkitIndexedDB</b>, которое отличается от <b>mozIndexedDB</b>.</i></li>
-            <li>Я использовал Test Driven Development.</li>
+            <li>Скрипт рисования работает в любом браузере, поддерживающем HTML5 теги <b>&lt;canvas /&gt;</b> и <b>&lt;video /&gt;</b>. Я тестировал IE 10.0.8102.0, Chrome 15.0.874.121, </li>
+            <li>Сохранение изображений между сессиями доступно только в Chrome, <i>потому что</i> я использовал веб-хранилище <b>webkitIndexedDB</b>.</li>
+            <li>Я не использовал <a href="https://github.com/jensarps/IDBWrapper">обертки над IndexedDB для поддержки мультибраузерности</a>, <i>потому что</i> мне было интересно самостоятельно поработать со стандартным API.</li>
+            <li>Я использовал <b>Test Driven Development</b>. Посмотрите тесты (JsTestDriver), возможно, они помогут лучше понять ход моих мыслей .</li>
+            <li>Для тестирования БД и некоторых других классов я создавал <b>Mock-объекты</b>.</li>
         </ul>
-        <button class="show-hide-algorithm">Показать описание алгоритма</button>
-    </section>
-    <section id="algorithm">
-        <h4>Отображение видео и рисование поверх него</h4>
-        <p>Я просто поместил <b>&lt;canvas&gt;</b> поверх <b>&lt;video&gt;</b> и получил возможность рисовать "на лету" поверх видео-плеера.</p>
-        <h4>Хранение изображений</h4>
-        <p>Для длительного хранения я использовал <b>IndexedDB</b>, потому что она:</p>
+        <h4>Архитектура системы</h4>
         <ul>
-            <li>Позволяет хранить <b>объекты</b> (&nbsp;сериализация и десериализация не нужны&nbsp;).</li>
-            <li>Не теряет данные даже при перезапуске браузера.</li>
-            <li>Позволяет работать асинхронно.</li>
+            <li><b>DataBase</b> &mdash; хранение изображений между сессиями. Умеет хранить <b>объекты</b>, работает асинхронно, но медленно.</li>
+            <li><b>DrawingsRepository</b> &mdash; отображение БД в памяти. Хранит объекты в сортированном порядке, поиск и выборка данных за O(log).</li>
+            <li><b>CanvasRepository</b> &mdash; отображение изображений на &lt;canvas /&gt;. Хранит объекты в HashTable, выборка данных за O(1).</li>
         </ul>
-        <p>Для кратковременного хранения я использовал собственную структуру в памяти <b>DrawingsRepository</b>, которая хранит объекты в сортированном порядке (&nbsp;для быстрого поиска и выборки данных&nbsp;).</p>
-        <h4>Обработка рисования</h4>
-        <ul>
-            <li>При загрузке страницы <b>все</b> изображения копируются из БД в репозиторий. </li>
-            <li>Во время проигрывания 24 раза в секунду из репозитория выбираются все изображения в промежутке времени <b>от текущего до следующего кадров</b> и рисуются на <i>canvas</i>. </li>
-            <li>Во время перемотки видео всё практически так же, только <b>перед каждым рисованием <i>canvas</i> очищается</b>, и промежуток времени выбирается <b>от первого до текущего кадров</b>.</li>
-            <li>Во время рисования изображение отображается на <i>canvas</i>, а также копируется в БД и репозиторий.</li>
-        </ul>
-        <button class="show-hide-algorithm">Показать описание алгоритма</button>
     </section>
     
     <script type="text/javascript" src="js/Globals.js"></script>

@@ -3,10 +3,10 @@
     test_Cannot_Add_Duplicate_Drawings: function ()
     {
         var repository = new MockCanvasRepository();
-
-        assertEquals( 3, repository.GetAllDrawings().length );
+        
+        assertEquals( 2, repository.GetAllDrawings().length );
         repository.Add( 6 );
-        assertEquals( 3, repository.GetAllDrawings().length );
+        assertEquals( 2, repository.GetAllDrawings().length );
     },
 
     test_Can_Remove_Drawings_That_Are_Not_In_Desired_Time_Interval: function ()

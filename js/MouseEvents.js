@@ -20,11 +20,8 @@
         if ( !e ) { Log.Error( "MouseEvents.Finish( --> e <-- )" ); return; }
 
         this.To = new Point( e.offsetX, e.offsetY );
-        var drawing = new Drawing( new Line( this.From, this.To ), brush.Color, brush.Width, GetVideoTime(), GetVideoTime() + 5 );
+        var drawing = new Drawing( new Line( this.From, this.To ), brush.Color, brush.Width, GetVideoTime(), GetVideoTime() + brush.Duration );
         this.IsDrawing = false;
-
-        if ( drawing.Line.From.Equals( drawing.Line.To ) )
-            return;
 
         SplitDrawAndSave( drawing );
     }
@@ -37,15 +34,12 @@
         if ( !e ) { Log.Error( "MouseEvents.Move( --> e <-- )" ); return; }
 
         this.To = new Point( e.offsetX, e.offsetY );
-        var drawing = new Drawing( new Line( this.From, this.To ), brush.Color, brush.Width, GetVideoTime(), GetVideoTime() + 5 );
+        var drawing = new Drawing( new Line( this.From, this.To ), brush.Color, brush.Width, GetVideoTime(), GetVideoTime() + brush.Duration );
 
         if ( InPaintArea( this.To ) )
             this.From = this.To;
         else
             this.IsDrawing = false;
-
-        if ( drawing.Line.From.Equals( drawing.Line.To ) )
-            return;
 
         SplitDrawAndSave( drawing );
     }
@@ -64,7 +58,7 @@
 
     function DataBaseSafeAdd( drawing )
     {
-        if ( dataBase )
+        if ( dataBase.Add )
             dataBase.Add( drawing );
     }
 

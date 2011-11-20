@@ -5,25 +5,44 @@
     this.Add = function ( drawing )
     {
         if ( !drawing ) { Log.Error( "DrawRepository.Add( --> drawing <-- )" ); return; }
-        drawings.splice( FindTimePos( drawing.VideoTimeStart, function ( a, b ) { return a > b; } ), 0, drawing );
+        drawings.splice( FindVideoTimeStartPos( drawing.VideoTimeStart, function ( a, b ) { return a > b; } ), 0, drawing );
     }
 
-    this.Get = function ( drawingFrom, videoTimeStartTo )
+    this.GetInterval = function ( drawingFrom, videoTimeStartTo )
     {
-        return drawings.slice( drawingFrom ? FindDrawingPos( drawingFrom ) + 1 : 0, FindTimePos( videoTimeStartTo, function ( a, b ) { return a > b; } ) );
+        if ( !drawingFrom ) { Log.Error( "DrawRepository.GetInterval( --> drawingFrom <-- )" ); return; }
+
+        return drawings.slice( FindDrawingPos( drawingFrom ) + 1, FindVideoTimeStartPos( videoTimeStartTo, function ( a, b ) { return a > b; } ) );
     }
 
-    function FindTimePos( videoTimeStart, compare )
+    this.GetVisibleBefore = function ( videoTimeStartTo )
     {
-        for ( var i = 0; i < drawings.length; i++ )
-            if ( compare(drawings[i].VideoTimeStart, videoTimeStart) )
-                return i;
-        return drawings.length;
+        var allBeforeVideoTimeStartTo = drawings.slice( 0, FindVideoTimeStartPos( videoTimeStartTo, function ( a, b ) { return a > b; } ) );
+        var result = [];
+        for ( var i = 0; i < allBeforeVideoTimeStartTo.length; i++ )
+            if ( allBeforeVideoTimeStartTo[i].VideoTimeFinish >= videoTimeStartTo )
+                result.push( allBeforeVideoTimeStartTo[i] );
+
+        return result;
+    }
+
+    function FindVideoTimeStartPos( videoTimeStartTo, compare, from, to )
+    {
+        from = from == undefined ? 0 : from;
+        to = to == undefined ? drawings.length : to;
+
+        if ( !drawings.length || to <= from )
+            return from;
+        var mid = Math.floor( ( from + to ) / 2 );
+
+        if ( compare( drawings[mid].VideoTimeStart, videoTimeStartTo ) )
+            return FindVideoTimeStartPos( videoTimeStartTo, compare, from, mid );
+        return FindVideoTimeStartPos( videoTimeStartTo, compare, mid + 1, to );
     }
 
     function FindDrawingPos( drawing )
     {
-        for ( var i = FindTimePos( drawing.VideoTimeStart, function ( a, b ) { return a >= b; } ); i < drawings.length; i++ )
+        for ( var i = FindVideoTimeStartPos( drawing.VideoTimeStart, function ( a, b ) { return a >= b; } ); i < drawings.length; i++ )
             if ( drawings[i].Equals( drawing ) )
                 return i;
         return drawings.length;
