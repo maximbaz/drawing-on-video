@@ -17,9 +17,9 @@
     tet_Split_Lines_Depending_On_Angle_With_Beauty_Offset: function ()
     {
         var beautyOffset = 2;
-        var Angle30 = new Drawing( new Line( new Point( 1, 1 ), new Point( 5, 3 ) ) );
-        var Angle60 = new Drawing( new Line( new Point( 1, 1 ), new Point( 3, 5 ) ) );
-        var AngleRandom = new Drawing( new Line( new Point( 8, 2 ), new Point( 1, 0 ) ) );
+        var Angle30      = new Drawing( new Line( new Point( 1, 1 ), new Point( 5, 3 ) ) );
+        var Angle60      = new Drawing( new Line( new Point( 1, 1 ), new Point( 3, 5 ) ) );
+        var AngleRandom  = new Drawing( new Line( new Point( 8, 2 ), new Point( 1, 0 ) ) );
 
         var splitAngle30 = new SplitDrawings( Angle30 );
         assertEquals( 5, splitAngle30.length );

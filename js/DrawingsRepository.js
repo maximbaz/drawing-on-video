@@ -11,7 +11,6 @@
     this.GetInterval = function ( drawingFrom, videoTimeStartTo )
     {
         if ( !drawingFrom ) { Log.Error( "DrawRepository.GetInterval( --> drawingFrom <-- )" ); return; }
-
         return drawings.slice( FindDrawingPos( drawingFrom ) + 1, FindVideoTimeStartPos( videoTimeStartTo, function ( a, b ) { return a > b; } ) );
     }
 
@@ -25,6 +24,8 @@
 
         return result;
     }
+
+    this.Clear = function () { drawings = []; }
 
     function FindVideoTimeStartPos( videoTimeStartTo, compare, from, to )
     {
@@ -47,8 +48,6 @@
                 return i;
         return drawings.length;
     }
-
-    this.Clear = function () { drawings = []; }
 
     /* For testing purposes only */
     this.GetAllDrawings = function ()

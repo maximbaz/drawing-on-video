@@ -1,36 +1,34 @@
-﻿function Canvas (canvas, indexedDB)
+﻿function Canvas( canvas, indexedDB, updateDbLog )
 {
     if ( !canvas ) { Log.Error( "Canvas( --> canvas <-- )" ); return; }
 
-    this.Width = canvas.width;
-    this.Height = canvas.height;
-    this.Context = canvas.getContext( "2d" );
-    this.Brush = new Brush( this.Context );
-    this.DrawingsRepository = new DrawingsRepository();
-    this.DataBase = new DataBase( indexedDB, this.DrawingsRepository );
-    this.CanvasRepository = new CanvasRepository( this.Brush, this.DrawingsRepository );
+    var context = canvas.getContext( "2d" );
+    this.Brush = new Brush( context );
+    var drawingsRepository = new DrawingsRepository();
+    var canvasRepository = new CanvasRepository( this.Brush, drawingsRepository );
+    var dataBase = new DataBase( indexedDB, drawingsRepository, updateDbLog );
 
-    var mouseEvents = new MouseEvents( this.Width, this.Height, this.Brush, this.DrawingsRepository, this.CanvasRepository, this.DataBase );
+    var mouseEvents = new MouseEvents( canvas.width, canvas.height, this.Brush, drawingsRepository, canvasRepository, dataBase );
 
     canvas.onmousedown = function ( e ) { mouseEvents.Start( e ); }
     canvas.onmousemove = function ( e ) { mouseEvents.Move( e ); }
     canvas.onmouseup = function ( e ) { mouseEvents.Finish( e ); }
-}
 
-Canvas.prototype.Update = function( time )
-{
-    this.CanvasRepository.Remove( time );
-    this.CanvasRepository.Add( time );
-}
+    this.Update = function ( time )
+    {
+        canvasRepository.Remove( time );
+        canvasRepository.Add( time );
+    }
 
-Canvas.prototype.ClearHistory = function()
-{
-    this.DrawingsRepository.Clear();
-    this.DataBase.ReCreate();
-}
+    this.ClearHistory = function ()
+    {
+        drawingsRepository.Clear();
+        dataBase.ReCreate();
+    }
 
-Canvas.prototype.Clear = function( time )
-{
-    this.Context.clearRect( 0, 0, this.Width, this.Height );
-    this.CanvasRepository.Clear( time );
+    this.Clear = function ( time )
+    {
+        context.clearRect( 0, 0, canvas.width, canvas.height );
+        canvasRepository.Clear( time );
+    }
 }

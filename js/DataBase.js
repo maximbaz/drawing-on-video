@@ -1,19 +1,15 @@
-﻿function DataBase ( indexedDB, drawingsRepository )
+﻿function DataBase( indexedDB, drawingsRepository, updateDbLog )
 {
-    if( !indexedDB ) { Log.Error( "DataBase( --> indexedDB <-- )" ); return; }
-    if( !drawingsRepository ) { Log.Error( "DataBase( --> drawingsRepository <-- )" ); return; }
-    
+    if ( !indexedDB ) { Log.Error( "DataBase( --> indexedDB <-- )" ); return; }
+    if ( !drawingsRepository ) { Log.Error( "DataBase( --> drawingsRepository <-- )" ); return; }
+    if ( !updateDbLog ) { Log.Error( "DataBase( --> updateDbLog <-- )" ); return; }
+
     var db;
     var request = indexedDB.open( "lines-db" );
     request.onerror = Log.Error;
-    request.addEventListener( "success", function ( e ) 
-    { 
-        db = request.result; 
-        Log.Show("DataBase --> Database opened / created!"); 
-        Create(true);
-    }, false );
+    var that = this;
 
-    function Create(loadPrevious)
+    this.Create = function ( loadPrevious )
     {
         if ( !IsOpened() )
             return;
@@ -24,77 +20,87 @@
         {
             if ( !db.objectStoreNames.contains( "lines" ) )
             {
-                objectStore = db.createObjectStore( "lines", { autoIncrement: true } ); 
+                objectStore = db.createObjectStore( "lines", { autoIncrement: true } );
                 Log.Show( "DataBase.Create --> Object store created!" );
             }
-            else 
-            { 
-                Log.Show( "DataBase.Create --> Object store opened!" ); 
-            }
+            else
+                Log.Show( "DataBase.Create --> Object store opened!" );
 
-            if(loadPrevious)
-                Get();
+            if ( loadPrevious )
+            {
+                updateDbLog( "Загрузка предыдущих изображений  . . ." );
+                that.Get();
+            }
         }, false );
     }
 
-    function Add( drawing )
+    this.Add = function ( drawing )
     {
-        if( !drawing ) { Log.Error( "DataBase.Add( --> drawing <-- )" ); return; }
+        if ( !drawing ) { Log.Error( "DataBase.Add( --> drawing <-- )" ); return; }
 
-        if ( !( IsOpened() && IsObjectStoreCreated() ) )
+        if ( !IsOpened() || !IsObjectStoreCreated() )
             return;
 
-        var objectStore = db.transaction( [ "lines" ], webkitIDBTransaction.READ_WRITE ).objectStore( "lines" );
+        var objectStore = db.transaction( ["lines"], webkitIDBTransaction.READ_WRITE ).objectStore( "lines" );
         var addRequest = objectStore.put( drawing );
         addRequest.onerror = Log.Error;
     }
 
-    function Get()
+    this.Get = function ()
     {
         if ( !IsObjectStoreCreated() )
             return;
 
-        var objectStore = db.transaction([ "lines" ], webkitIDBTransaction.READ_ONLY).objectStore("lines");
+        var objectStore = db.transaction( ["lines"], webkitIDBTransaction.READ_ONLY ).objectStore( "lines" );
         var cursorRequest = objectStore.openCursor();
 
-        cursorRequest.addEventListener( "success", function( e ) 
+        cursorRequest.addEventListener( "success", function ( e )
         {
             var cursor = cursorRequest.result;
-            if(!cursor)
+            if ( !cursor )
             {
-                Log.Show("DataBase.Get --> Previous drawings loaded!");
+                Log.Show( "DataBase.Get --> Previous drawings loaded!" );
+                updateDbLog( null, "hide" );
                 return;
             }
-            
-            drawingsRepository.Add( DrawingFromObject(cursor.value) ); 
+
+            drawingsRepository.Add( DrawingFromObject( cursor.value ) );
             cursor.continue();
         }, false );
         cursorRequest.onerror = Log.Error;
     }
 
-    function ReCreate() 
+    this.ReCreate = function ()
     {
         if ( !IsOpened() )
             return;
 
-        var request = db.setVersion("1.0");
+        var request = db.setVersion( "1.0" );
         request.onerror = Log.Error;
-        request.addEventListener( "success", function( e ) 
+        request.addEventListener( "success", function ( e )
         {
-            if (db.objectStoreNames.contains("lines")) 
+            if ( db.objectStoreNames.contains( "lines" ) )
             {
-                try 
+                try
                 {
-                    db.deleteObjectStore("lines");
-                    Log.Show("DataBase.ReCreate --> Object store removed!");
-                    Create();
-                } 
-                catch (err) { Log.Exception(err); }
-            } 
-            else 
-                Log.Error("DataBase.ReCreate --> Object store doesn't exist.");
+                    db.deleteObjectStore( "lines" );
+                    Log.Show( "DataBase.ReCreate --> Object store removed!" );
+                    that.Create();
+                }
+                catch ( err ) { Log.Exception( err ); }
+            }
+            else
+                Log.Error( "DataBase.ReCreate --> Object store doesn't exist." );
         }, false );
     }
+
+    request.addEventListener( "success", function ( e )
+    {
+        db = request.result;
+        Log.Show( "DataBase --> Database opened / created!" );
+        that.Create( true );
+        updateDbLog( "Создание хранилища объектов . . .", "show" );
+    }, false );
 
     function DrawingFromObject( value )
     {
@@ -110,7 +116,7 @@
     {
         if ( !db && request )
         {
-            Log.Error("DataBase.IsOpened --> DataBase is not opened.");
+            Log.Error( "DataBase.IsOpened --> DataBase is not opened." );
             return false;
         }
         return true;
@@ -125,6 +131,5 @@
         }
         return true;
     }
-
-    return { Create: Create, ReCreate: ReCreate, Get: Get, Add: Add }
 }
+

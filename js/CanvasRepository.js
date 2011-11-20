@@ -6,9 +6,6 @@
     var newestDrawing;
     var lastRemoved = 0;
     var table = new HashTable();
-    var that = this;
-
-    // privileged
 
     this.Add = function ( time )
     {
@@ -31,20 +28,11 @@
         RemoveWhereVideoTimeStartDoesntBegin( time );
     }
 
-
-    this.Clear = function ( time ) { table = new HashTable(); lastRemoved = time; }
-
-    /* For testing purposes only */
-    this.GetAllDrawings = function ()
+    this.Clear = function ( time )
     {
-        var result = [];
-        for ( var i in table.Data )
-            result.push( { "VideoTimeFinish": table.Data[i].VideoTimeFinish } );
-
-        return result;
+        table = new HashTable();
+        lastRemoved = time;
     }
-
-    // private
 
     function RemoveWhereVideoTimeFinishPassed( time )
     {
@@ -56,7 +44,7 @@
                 lastRemoved = removing.VideoTimeFinish;
                 brush.Clear( removing );
                 table.Remove( removing );
-                // InvalidatePreviouslyHiddenLines( removing );
+                InvalidatePreviouslyHiddenLines( removing );
             }
         }
     }
@@ -91,15 +79,31 @@
 
     function InvalidatePreviouslyHiddenLines( drawing )
     {
+        var dVertical = drawing.Line.From.X == drawing.Line.To.X;
+        var d = new Line( new Point( drawing.Line.From.X - ( dVertical ? Math.ceil( drawing.Width / 2 ) : 0 ), drawing.Line.From.Y - ( dVertical ? 0 : Math.ceil( drawing.Width / 2 ) ) ),
+                         new Point( drawing.Line.To.X + ( dVertical ? Math.ceil( drawing.Width / 2 ) : 0 ), drawing.Line.To.Y + ( dVertical ? 0 : Math.ceil( drawing.Width / 2 ) ) ) );
+
         for ( var i in table.Data )
         {
-            if ( ( table.Data[i].Line.From.X - Math.ceil( table.Data[i].Width / 2 ) <= drawing.Line.From.X - Math.ceil( drawing.Width / 2 ) <= table.Data[i].Line.To.X + Math.ceil( table.Data[i].Width / 2 ) || drawing.Line.From.X - Math.ceil( drawing.Width / 2 ) <= table.Data[i].Line.From.X - Math.ceil( table.Data[i].Width / 2 ) <= drawing.Line.To.X + Math.ceil( drawing.Width / 2 ) ) &&
-                 ( table.Data[i].Line.From.Y - Math.ceil( table.Data[i].Width / 2 ) <= drawing.Line.From.Y - Math.ceil( drawing.Width / 2 ) <= table.Data[i].Line.To.Y + Math.ceil( table.Data[i].Width / 2 ) || drawing.Line.From.Y - Math.ceil( drawing.Width / 2 ) <= table.Data[i].Line.From.Y - Math.ceil( table.Data[i].Width / 2 ) <= drawing.Line.To.Y + Math.ceil( drawing.Width / 2 ) ) )
-            {
-                console.log( ( table.Data[i].Line.From.X - Math.ceil( table.Data[i].Width / 2 ) ) + " " + ( drawing.Line.From.X - Math.ceil( drawing.Width / 2 ) ) + " " + ( table.Data[i].Line.To.X + Math.ceil( table.Data[i].Width / 2 ) ) + " " +( drawing.Line.From.X - Math.ceil( drawing.Width / 2 )) + " " +( table.Data[i].Line.From.X - Math.ceil( table.Data[i].Width / 2 )) + " " +( drawing.Line.To.X + Math.ceil( drawing.Width / 2 ))  + " " +
-                             ( table.Data[i].Line.From.Y - Math.ceil( table.Data[i].Width / 2 ) ) + " " + ( drawing.Line.From.Y - Math.ceil( drawing.Width / 2 ) ) + " " + ( table.Data[i].Line.To.Y + Math.ceil( table.Data[i].Width / 2 ) ) + " " +( drawing.Line.From.Y - Math.ceil( drawing.Width / 2 )) + " " +( table.Data[i].Line.From.Y - Math.ceil( table.Data[i].Width / 2 )) + " " +( drawing.Line.To.Y + Math.ceil( drawing.Width / 2 ) ));
-                brush.Draw( table.Data[i] );
-            }
+            var t = table.Data[i];
+            var tVertical = t.Line.From.X == t.Line.To.X;
+
+            if ( t.Line.From.X - ( tVertical ? Math.ceil( t.Width / 2 ) : 0 ) > d.To.X ||
+                 t.Line.To.X + ( tVertical ? Math.ceil( t.Width / 2 ) : 0 ) < d.From.X ||
+                 t.Line.From.Y - ( tVertical ? 0 : Math.ceil( t.Width / 2 ) ) > d.To.Y ||
+                 t.Line.To.Y + ( tVertical ? 0 : Math.ceil( t.Width / 2 ) ) < d.From.Y )
+                continue;
+            brush.Draw( t );
         }
+    }
+
+    /* For testing purposes only */
+    this.GetAllDrawings = function ()
+    {
+        var result = [];
+        for ( var i in table.Data )
+            result.push( { "VideoTimeFinish": table.Data[i].VideoTimeFinish } );
+
+        return result;
     }
 }

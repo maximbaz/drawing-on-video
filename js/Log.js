@@ -1,8 +1,6 @@
-﻿var Log = ( function ()
+﻿window.Log = new function()
 {
-    function Exception( exception ) { console.error( exception ); }
-    function Error( description ) { console.error( description ); }
-    function Show( description ) { console.info( description ); }
-
-    return { Exception: Exception, Error: Error, Show: Show }
-} )();
+    this.Exception = function ( exception ) { console.error( exception ); }
+    this.Error = function ( description ) { console.error( description ); }
+    this.Show = function ( description ) { console.info( description ); }
+}

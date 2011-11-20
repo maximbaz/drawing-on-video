@@ -14,4 +14,8 @@ HashTable.prototype.Add = function ( drawing )
     }
 }
 
-HashTable.prototype.Remove = function ( drawing ) { delete this.Data[drawing.toString()]; --this.length; }
+HashTable.prototype.Remove = function ( drawing )
+{
+    delete this.Data[drawing.toString()];
+    --this.length;
+}

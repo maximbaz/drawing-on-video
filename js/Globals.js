@@ -13,8 +13,8 @@ function GetVideoTime() { return parseFloat( $( "video" )[0].currentTime.toFixed
 function UpdateWidth( value )
 {
     var val = parseInt( value );
-    Canvas.Brush.SetWidth( val );
-    $( "#current-width" ).html( Math.floor( val / 2 ) + " ед." );
+    Canvas.Brush.SetWidth( val * 2 + 1 );
+    $( "#current-width" ).html( val + " ед." );
 }
 
 function UpdateDuration( value )
@@ -22,4 +22,25 @@ function UpdateDuration( value )
     var val = parseInt( value );
     Canvas.Brush.SetDuration( val == 5 ? Number.MAX_VALUE : val ); 
     $( "#current-duration" ).html( val == 5 ? "&infin;" : val + " сек." );
+}
+
+
+function UpdateDbLog( text, status )
+{
+    var DbTimer;
+
+    if(text)
+        $( "#db-log" ).html( text );
+
+    switch ( status )
+    {
+        case "show":
+            $( "#db-log" ).fadeIn();
+            DbTimer = setTimeout( function () { UpdateDbLog( "Возникла проблема при создании хранилища объектов. Пожалуйста, перезагрузите браузер." ); }, 3000 );
+            break;
+        case "hide": 
+            $( "#db-log" ).fadeOut(); 
+            clearTimeout( DbTimer );
+            break;
+    }
 }

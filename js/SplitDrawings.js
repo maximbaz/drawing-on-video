@@ -45,8 +45,6 @@
 
     return result;
 
-    // private
-
     function TryX( line, point )
     {
         point.X += offset;

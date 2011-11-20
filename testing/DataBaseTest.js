@@ -2,8 +2,7 @@
 {
     test_Ctor_Calls_Create_Get_Can_ReCreate_And_Add_New_Drawing: function ()
     {
-        var db = new DataBase( new MockIndexedDB(), new MockDrawingsRepository() );
-        assertNotEquals( {}, db );
+        db = new DataBase( new MockIndexedDB(), new MockDrawingsRepository(), function () { } );
         // Console: [INFO] DataBase --> Database opened / created!
         // Console: [INFO] DataBase.Create --> Object store created!
         // Console: [INFO] DataBase.Get --> Previous drawings loaded!

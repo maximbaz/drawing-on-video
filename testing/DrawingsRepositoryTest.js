@@ -7,7 +7,7 @@
         assertEquals( [{ "VideoTimeStart": 1 },
                        { "VideoTimeStart": 3 },
                        { "VideoTimeStart": 6}],
-                      repository.GetAllDrawings() );
+                       repository.GetAllDrawings() );
     },
 
     test_Can_Get_Drawings_In_Desired_Time_Interval: function ()
@@ -22,7 +22,7 @@
         drawing.VideoTimeFinish = 7;
         assertEquals( [{ "VideoTimeStart": 3 },
                        { "VideoTimeStart": 6}],
-                      TakeVideoTimeStartFromGetInterval( repository, drawing, 15 ) );
+                       TakeVideoTimeStartFromGetInterval( repository, drawing, 15 ) );
 
         drawing.VideoTimeStart = 3;
         drawing.VideoTimeFinish = 5;
@@ -37,11 +37,11 @@
 
         assertEquals( [{ "VideoTimeStart": 1 },
                        { "VideoTimeStart": 3}],
-                      TakeVideoTimeStartFromGetVisibleBefore( repository, 5 ) );
+                       TakeVideoTimeStartFromGetVisibleBefore( repository, 5 ) );
 
         assertEquals( [{ "VideoTimeStart": 1 }, 
                        { "VideoTimeStart": 6}],
-                      TakeVideoTimeStartFromGetVisibleBefore( repository, 6 ) );
+                       TakeVideoTimeStartFromGetVisibleBefore( repository, 6 ) );
     },
 
     test_Can_Clear_All_Drawings: function ()

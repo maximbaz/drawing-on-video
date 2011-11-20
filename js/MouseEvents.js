@@ -6,45 +6,48 @@
     if ( !drawingsRepository ) { Log.Error( "MouseEvents( --> drawingsRepository <-- )" ); return; }
     if ( !canvasRepository ) { Log.Error( "MouseEvents( --> canvasRepository <-- )" ); return; }
 
-    this.From;
-    this.To;
-    this.IsDrawing = false;
+    var from, to;
+    var isDrawing = false;
 
-    // privileged
+    this.Start = function ( e )
+    {
+        if ( !e ) { Log.Error( "MouseEvents.Start( --> e <-- )" ); return; }
+
+        from = new Point( e.offsetX, e.offsetY );
+        isDrawing = true;
+    }
 
     this.Finish = function ( e )
     {
-        if ( !this.IsDrawing )
+        if ( !isDrawing )
             return;
 
         if ( !e ) { Log.Error( "MouseEvents.Finish( --> e <-- )" ); return; }
 
-        this.To = new Point( e.offsetX, e.offsetY );
-        var drawing = new Drawing( new Line( this.From, this.To ), brush.Color, brush.Width, GetVideoTime(), GetVideoTime() + brush.Duration );
-        this.IsDrawing = false;
+        to = new Point( e.offsetX, e.offsetY );
+        var drawing = new Drawing( new Line( from, to ), brush.Color, brush.Width, GetVideoTime(), GetVideoTime() + brush.Duration );
+        isDrawing = false;
 
         SplitDrawAndSave( drawing );
     }
 
     this.Move = function ( e )
     {
-        if ( !this.IsDrawing )
+        if ( !isDrawing )
             return;
 
         if ( !e ) { Log.Error( "MouseEvents.Move( --> e <-- )" ); return; }
 
-        this.To = new Point( e.offsetX, e.offsetY );
-        var drawing = new Drawing( new Line( this.From, this.To ), brush.Color, brush.Width, GetVideoTime(), GetVideoTime() + brush.Duration );
+        to = new Point( e.offsetX, e.offsetY );
+        var drawing = new Drawing( new Line( from, to ), brush.Color, brush.Width, GetVideoTime(), GetVideoTime() + brush.Duration );
 
-        if ( InPaintArea( this.To ) )
-            this.From = this.To;
+        if ( InPaintArea( to ) )
+            from = to;
         else
-            this.IsDrawing = false;
+            isDrawing = false;
 
         SplitDrawAndSave( drawing );
     }
-
-    // private
 
     function InPaintArea( point )
     {
@@ -56,12 +59,6 @@
                point.Y > dx && point.Y < height - dx;
     }
 
-    function DataBaseSafeAdd( drawing )
-    {
-        if ( dataBase.Add )
-            dataBase.Add( drawing );
-    }
-
     function SplitDrawAndSave( drawing )
     {
         var splitted = SplitDrawings( drawing );
@@ -69,18 +66,8 @@
         {
             drawingsRepository.Add( splitted[i] );
             canvasRepository.Add( GetVideoTime() );
-            DataBaseSafeAdd( splitted[i] );
+            if ( dataBase.Add )
+                dataBase.Add( splitted[i] );
         }
     }
 }
-
-// public
-
-MouseEvents.prototype.Start = function ( e )
-{
-    if ( !e ) { Log.Error( "MouseEvents.Start( --> e <-- )" ); return; }
-
-    this.From = new Point( e.offsetX, e.offsetY );
-    this.IsDrawing = true;
-}
-

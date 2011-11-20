@@ -17,7 +17,7 @@
                 <label for="green"> <input id="green" type="radio" name="color" value="#00FF00" />Зеленый </label>
                 <label for="blue"> <input id="blue" type="radio" name="color" value="#0000FF" checked />Синий </label>
             </fieldset>
-            <div><span class="description">Толщина пера: </span><input id="width" type="range" min="3" max="13" step="2" value="13" /><span id="current-width" class="counter">6 ед.</span></div>
+            <div><span class="description">Толщина пера: </span><input id="width" type="range" min="1" max="6" step="1" value="6" /><span id="current-width" class="counter">6 ед.</span></div>
             <div><span class="description">Отображать на экране: </span><input id="duration" type="range" min="1" max="5" step="1" value="1" /><span id="current-duration" class="counter">1 сек.</span></div>
             <button id="clear-canvas">Очистить экран</button>
             <button id="clear-history">Очистить историю рисования</button>
@@ -26,6 +26,7 @@
 
     <section id="description">
         <div id="error"></div>
+        <div id="db-log"></div>
         <figure>
             <img src="Content/My-photo.png" alt="It's me!" />
             <figcaption>
@@ -38,17 +39,18 @@
         <br />
         <h4>Комментарии</h4>
         <ul>
-            <li>Скрипт рисования работает в любом браузере, поддерживающем HTML5 теги <b>&lt;canvas /&gt;</b> и <b>&lt;video /&gt;</b>. Я тестировал IE 10.0.8102.0, Chrome 15.0.874.121, </li>
+            <li>Скрипт рисования работает в любом браузере, поддерживающем HTML5 теги <b>&lt;canvas /&gt;</b> и <b>&lt;video /&gt;</b>. Я тестировал IE 10.0.8102.0 и Chrome 15.0.874.121. </li>
             <li>Сохранение изображений между сессиями доступно только в Chrome, <i>потому что</i> я использовал веб-хранилище <b>webkitIndexedDB</b>.</li>
             <li>Я не использовал <a href="https://github.com/jensarps/IDBWrapper">обертки над IndexedDB для поддержки мультибраузерности</a>, <i>потому что</i> мне было интересно самостоятельно поработать со стандартным API.</li>
-            <li>Я использовал <b>Test Driven Development</b>. Посмотрите тесты (JsTestDriver), возможно, они помогут лучше понять ход моих мыслей .</li>
+            <li>Я использовал <b>Test Driven Development</b>. Посмотрите тесты (JsTestDriver), возможно, они помогут лучше понять ход моих мыслей.</li>
             <li>Для тестирования БД и некоторых других классов я создавал <b>Mock-объекты</b>.</li>
+            <li><i>Известная проблема</i>: иногда при создании хранилища объектов IndexedDB асинхронный callback не вызывается, в этом случае я уведомляю пользователя о возникшей проблеме и способе ее решения.</li>
         </ul>
         <h4>Архитектура системы</h4>
         <ul>
             <li><b>DataBase</b> &mdash; хранение изображений между сессиями. Умеет хранить <b>объекты</b>, работает асинхронно, но медленно.</li>
             <li><b>DrawingsRepository</b> &mdash; отображение БД в памяти. Хранит объекты в сортированном порядке, поиск и выборка данных за O(log).</li>
-            <li><b>CanvasRepository</b> &mdash; отображение изображений на &lt;canvas /&gt;. Хранит объекты в HashTable, выборка данных за O(1).</li>
+            <li><b>CanvasRepository</b> &mdash; хранит в HashTable объекты, которые в данный момент изображены на &lt;canvas /&gt;. Выборка данных за O(1).</li>
         </ul>
     </section>
     
